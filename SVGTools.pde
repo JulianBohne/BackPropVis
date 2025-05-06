@@ -65,8 +65,6 @@ String cleanSVGString(String baseSVGString) {
   XMLNode rootGroup = root.childOfType("g");
   rootGroup.removeAttrib("stroke");
   rootGroup.removeAttrib("fill");
-  //rootGroup.setAttrib("stroke", "#000000");
-  //rootGroup.setAttrib("fill",   "#000000");
   
   replaceUseTags(rootGroup, defByID);
   
@@ -76,13 +74,17 @@ String cleanSVGString(String baseSVGString) {
 static final String tex2svgCommand = "tex2svg.cmd"; // npm install --global mathjax-node-cli
 PShape texToSVG(String texString) {
   
-  String cacheFileName = "data/tmp/TEX-" + String.format("%010d", ((long)texString.hashCode()) - (long)Integer.MIN_VALUE) + ".xml";
+  XML loadedXML;
+  String cachedFileName = "tmp/TEX-" + String.format("%010d", ((long)texString.hashCode()) - (long)Integer.MIN_VALUE) + ".xml";
+  File cachedFile = dataFile(cachedFileName);
+  cachedFileName = "data/" + cachedFileName;
   
-  println("Trying cached XML: `" + texString + "` -> " + cacheFileName);
-  XML loadedXML = loadXML(cacheFileName);
-  if (loadedXML != null) {
-    println("Using cached xml!");
-    return new PShapeSVG(loadedXML);
+  if (cachedFile.isFile()) {
+    println("Trying cached XML: `" + texString + "` -> " + cachedFileName);
+    loadedXML = loadXML(cachedFileName);
+    if (loadedXML != null) {
+      return new PShapeSVG(loadedXML);
+    }
   }
   
   try {
@@ -107,7 +109,7 @@ PShape texToSVG(String texString) {
     
     loadedXML = XML.parse(cleanedSVGString);
     
-    saveXML(loadedXML, cacheFileName);
+    saveXML(loadedXML, cachedFileName);
     
     PShape svgShape = new PShapeSVG(loadedXML);
 
